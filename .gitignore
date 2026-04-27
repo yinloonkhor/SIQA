@@ -1,0 +1,14 @@
+__pycache__/
+myenv/
+
+# Evaluation results
+results/
+submissions/
+
+# Models
+checkpoints/
+
+# Datasets
+data/
+M-Paper/
+TrainSet/
