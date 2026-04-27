@@ -314,3 +314,12 @@ Typical outputs produced by the scripts:
 - [BaseModel.py](BaseModel.py) is a shared module that defines `ScoreSoftHead`, `ScoreModel`, and `UnderstandModel`; the training, evaluation, and inference scripts import from it.
 - `eval_pipeline.py` computes SIQA-U accuracy by question type and computes SIQA-S from SRCC and PLCC over predicted `perception` and `knowledge` scores.
 - `data/tran_OpenAI.py` still exists in the repo, but it is legacy preprocessing code and is not used by the current training, evaluation, or inference scripts.
+
+## Acknowledgements
+
+The datasets used in this work are obtained from:
+
+- [SIQA/TrainSet](https://huggingface.co/datasets/SIQA/TrainSet) — official training, validation, and test data for `SIQA-S` and `SIQA-U`.
+- [mPLUG/M-Paper](https://huggingface.co/datasets/mPLUG/M-Paper) — instruction-tuning data used in the domain-adaptation stage.
+
+We thank their authors and maintainers for making these resources publicly available.
