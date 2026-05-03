@@ -5,6 +5,7 @@ myenv/
 # Evaluation results
 results/
 submissions/
+case_analysis/
 
 # Models
 checkpoints/
@@ -13,3 +14,4 @@ checkpoints/
 data/
 M-Paper/
 TrainSet/
+images_case/
