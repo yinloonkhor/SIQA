@@ -1,11 +1,9 @@
-# ICME2026-SIQA
+# SciQNet: Two-Stage Multimodal Adaptation for Scientific Image Quality Assessment
 
-This repository is a solution for [Scientific Image Quality Assessment Challenge (SIQA)](https://siqa-competition.github.io/). It contains training, evaluation, and inference scripts for scientific image quality assessment (SIQA) with multimodal models. The current codebase focuses on two benchmark tracks:
+This repository contains the training, evaluation, and inference code for **SciQNet**, our entry to the [Scientific Image Quality Assessment Challenge (SIQA)](https://siqa-competition.github.io/). SciQNet is a Qwen3-VL-2B-based multimodal model trained in two stages: (1) domain adaptation on the `M-Paper` instruction-tuning corpus, then (2) mixed LoRA fine-tuning on the two SIQA benchmark tracks:
 
 - `SIQA-S`: score prediction for `perception` and `knowledge`
 - `SIQA-U`: multiple-choice understanding / VQA with answer letters `A-D`
-
-It also includes a separate domain-adaptation stage built around the `M-Paper` instruction-tuning data.
 
 ## Environment
 
@@ -17,21 +15,21 @@ uv sync
 
 Dependencies are pinned in `pyproject.toml` and locked in `uv.lock`, so `uv sync` reproduces the same environment across machines.
 
-Also obtain the command to install PyTorch with CUDA based on your device through this [website](https://pytorch.org/get-started/locally/). An example of the command is shown below. The current `pyproject.toml` doesn't include torch and torchvision because each machine requires different CUDA version.
+Install PyTorch with the CUDA build matching your device — see the [PyTorch install guide](https://pytorch.org/get-started/locally/). `torch` and `torchvision` are intentionally left out of `pyproject.toml` because the right CUDA wheel varies by machine. Example:
 
 ```bash
 uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
 ```
 
-Then, activate the environment after downloading all the libraries.
+Then activate the environment:
+
 ```bash
 source ./.venv/bin/activate
 ```
 
-Verified model families in the current scripts:
+Verified model family in the current scripts:
 
-- `Qwen/Qwen3-VL-2B-Instruct` (used by all Qwen training/inference scripts)
-- `OpenGVLab/InternVL3_5-2B-HF` (used by [train_lora_full_internvl.py](train_lora_full_internvl.py))
+- `Qwen/Qwen3-VL-2B-Instruct`
 
 The wrappers use `AutoModelForImageTextToText` and `AutoProcessor` with `trust_remote_code=True`, so any replacement model must support that path cleanly.
 
@@ -59,11 +57,9 @@ git clone https://huggingface.co/datasets/SIQA/TrainSet
 
 Important:
 
-- the `M-Paper` dataset uses Git LFS for large files
-- install `git-lfs` before cloning the datasets so large image assets are pulled correctly
-- if `git-lfs` is not installed, you may only download small pointer files instead of the real dataset contents
-- the current defaults in [train_domain_lora.py](train_domain_lora.py) and [inference_domain.py](inference_domain.py) assume the cloned folder is named `M-Paper/` and sits under this repo root
-- the SIQA training and evaluation scripts assume the Hugging Face dataset is cloned into `TrainSet/` at this repo root; the dataset page is `https://huggingface.co/datasets/SIQA/TrainSet`
+- `M-Paper` uses Git LFS for large files; install `git-lfs` before cloning, or you will only get small pointer files instead of the real image assets.
+- The defaults in [train_domain_lora.py](train_domain_lora.py) and [inference_domain.py](inference_domain.py) assume the cloned folder is named `M-Paper/` and sits at the repo root.
+- The SIQA training and evaluation scripts assume the dataset is cloned into `TrainSet/` at the repo root.
 
 ## Expected Data Layout
 
@@ -167,12 +163,11 @@ There are two variants in the repo:
 - [train_lora_siqa_s.py](train_lora_siqa_s.py): LoRA for `SIQA-S` starting from the base model
 - [train_lora_siqa_s_from_domain.py](train_lora_siqa_s_from_domain.py): LoRA for `SIQA-S` initialized from a domain adapter checkpoint
 
-Important:
+Important — only the `*_from_domain.py` variants can continue from a domain-adapter checkpoint:
 
-- [train_lora_siqa_s.py](train_lora_siqa_s.py) does not support continuing from a domain-adaptation checkpoint
-- [train_lora_full.py](train_lora_full.py) does not support continuing from a domain-adaptation checkpoint
-- if you want to continue `SIQA-S` training from a domain adapter, use [train_lora_siqa_s_from_domain.py](train_lora_siqa_s_from_domain.py)
-- if you want to continue mixed `SIQA-S + SIQA-U` training from a domain adapter, use [train_lora_full_from_domain.py](train_lora_full_from_domain.py)
+- To continue `SIQA-S` training from a domain adapter, use [train_lora_siqa_s_from_domain.py](train_lora_siqa_s_from_domain.py).
+- To continue mixed `SIQA-S + SIQA-U` training from a domain adapter, use [train_lora_full_from_domain.py](train_lora_full_from_domain.py).
+- [train_lora_siqa_s.py](train_lora_siqa_s.py) and [train_lora_full.py](train_lora_full.py) always start from the base model and ignore any domain adapter.
 
 After editing the config values in the relevant script, run for example:
 
@@ -188,13 +183,7 @@ Default SIQA-S paths used across the training scripts:
 
 ### 3. Train a mixed SIQA-U + SIQA-S model
 
-[train_lora_full.py](train_lora_full.py) mixes the scoring and understanding tasks in one LoRA run.
-
-This script starts from the base model configuration in the file. It is not the path for continuing from the `M-Paper` domain adapter.
-
-For mixed training initialized from the domain adapter, use [train_lora_full_from_domain.py](train_lora_full_from_domain.py).
-
-[train_lora_full_internvl.py](train_lora_full_internvl.py) is an InternVL variant of the mixed run, built around `OpenGVLab/InternVL3_5-2B-HF` instead of the Qwen base model.
+[train_lora_full.py](train_lora_full.py) mixes the scoring and understanding tasks in one LoRA run, starting from the base model. For mixed training initialized from the `M-Paper` domain adapter, use [train_lora_full_from_domain.py](train_lora_full_from_domain.py).
 
 Default paths:
 
@@ -232,7 +221,7 @@ Important: the current `__main__` block in [eval_pipeline.py](eval_pipeline.py) 
 - `args.SIQA_U = True`
 - `args.SIQA_S = True`
 
-If you want different inputs or a different model, edit that block first or refactor the script back to a pure CLI entry point.
+To use different inputs or a different model, edit that block, or refactor the script back to a pure CLI entry point.
 
 ### 5. Create an SIQA-S submission file
 
@@ -295,6 +284,22 @@ Run:
 
 ```bash
 python analyze_siqa_s_validation.py
+```
+
+### 9. Inspect training/validation/test pool sizes
+
+[analyze_dataset_splits.py](analyze_dataset_splits.py) prints, for both training stages, the exact row counts feeding the model:
+
+- Stage 1 (M-Paper, [train_domain_lora.py](train_domain_lora.py)): row counts after each layer of the filtering pipeline (image-health filter, dataset re-validation, per-`task_type` subsample), swept over `data_fraction ∈ {0.1, 0.4, 1.0}`. The val pool is reported separately and shown to be invariant to the train fraction.
+- Stage 2 (SIQA, [train_lora_full_from_domain.py](train_lora_full_from_domain.py)): raw row counts plus the per-epoch sample counts produced by `FractionalFamilySampler`, with `siqa_u_epoch_multiplier ∈ {0.1, 0.5, 1.0}` and the per-question-type breakdown (`yes-or-no` / `what` / `how`).
+- Validation and test pools for both SIQA-S (×2 perception/knowledge expansion) and SIQA-U (per-type breakdown).
+
+The script is read-only: it parses on-disk JSONL files without loading the model or running any training. No CLI args.
+
+Run:
+
+```bash
+python analyze_dataset_splits.py
 ```
 
 ## Outputs
