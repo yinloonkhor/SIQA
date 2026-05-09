@@ -337,7 +337,7 @@ If this repo helps your research, please kindly star this repo and cite our pape
 
 ```bash
 @inproceedings{khor2026icmew,
-    title   ={The 1st LoViF Challenge on Efficient VLM for Multimodal Creative Quality Scoring: Methods and Results},
+    title   ={SciQNet: Two-Stage Multimodal Adaptation for Scientific Image Quality Assessment},
     author  = {Khor, Yin-Loon and Wong, Yi-Jie and Tan, Jing Jie and Lee, Ming Jie},
     booktitle = {Proceedings of the IEEE International Conference on Multimedia and Expo (ICME) Workshops},
     month     = {July},
